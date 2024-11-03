@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "name": "C/C++: gcc build and debug grav-sim",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/grav-sim",
+            "args": [
+                "-input", "tests/data/simulations/sun-and-earth-365-days.json",
+                "-output", "tests/data/output/dev-test.sim",
+                "-timestep", "86400",
+                "-steps", "365"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Make grav-sim",
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ],
+    "version": "2.0.0"
+}

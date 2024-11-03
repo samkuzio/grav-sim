@@ -1,0 +1,3 @@
+*.o
+grav-sim
+tests/data/outputs

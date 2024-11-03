@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "grav-sim.h": "c",
+        "stdint.h": "c",
+    }
+}

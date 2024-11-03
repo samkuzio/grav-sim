@@ -1,0 +1,50 @@
+{
+    "name": "One Day of the Earth and Sun",
+    "initialState": {
+        "time": "0",
+        "bodies": [
+            {
+                "name": "sun",
+                "mass": "1.989e+30",
+                "position": {
+                    "x": "0",
+                    "y": "0",
+                    "z": "0"
+                },
+                "velocity": {
+                    "x": "0",
+                    "y": "0",
+                    "z": "0"
+                }
+            },
+            {
+                "name": "earth",
+                "mass": "5.972e+24",
+                "position": {
+                    "x": "149597870700",
+                    "y": "0",
+                    "z": "0"
+                },
+                "velocity": {
+                    "x": "0",
+                    "y": "0",
+                    "z": "29780"
+                }
+            },
+            {
+                "name": "moon",
+                "mass": "7.34767309e+22",
+                "position": {
+                    "x": "149982270700",
+                    "y": "0",
+                    "z": "0"
+                },
+                "velocity": {
+                    "x": "0",
+                    "y": "0",
+                    "z": "30802"
+                }
+            }
+        ]
+    }
+}
