@@ -6,6 +6,19 @@
 
 #define INVALID_JSON_RETURN(msg) slog("failed to parse SimState json: %s", msg); DeleteSimState(state); return NULL;
 
+// Create a blank SimState.
+SimState* NewSimState(biguint frame, seconds time, biguint nbodies) {
+    SimState* state = calloc(1, sizeof(SimState));
+    state->frame = frame;
+    state->time = time;
+    state->nBodies = nbodies;
+    state->bodies = calloc(nbodies, sizeof(SimBody*));
+    for (biguint i = 0; i < state->nBodies; i++) {
+        state->bodies[i] = NewSimBody();
+    }
+    return state;
+}
+
 // Create a SimState from json
 SimState* NewSimStateFromJson(struct json_object* json) {
     SimState* state = calloc(1, sizeof(SimState));
@@ -37,7 +50,7 @@ SimState* NewSimStateFromJson(struct json_object* json) {
     state->nBodies = json_object_array_length(bodiesArray);
     state->bodies = calloc(state->nBodies, sizeof(SimBody*));
     
-    for (int i = 0; i < state->nBodies; i++) {
+    for (biguint i = 0; i < state->nBodies; i++) {
         struct json_object* bodyObject = json_object_array_get_idx(bodiesArray, i);
         if (bodyObject == NULL) {
             INVALID_JSON_RETURN("could not get sim body object");
@@ -55,7 +68,7 @@ SimState* NewSimStateFromJson(struct json_object* json) {
 // Delete a simstate, freeing it and all the memory it owns.
 void DeleteSimState(SimState* this) {
     if (this != NULL) {
-        for (int i = 0; i < this->nBodies; i++) {
+        for (biguint i = 0; i < this->nBodies; i++) {
             SimBody* body = this->bodies[i];
             if (body != NULL) {
                 DeleteSimBody(body);

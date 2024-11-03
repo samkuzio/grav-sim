@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <time.h>
+
 #include <json-c/json.h>
+#include <omp.h>
 
 #include "sim.h"
 #include "simargs.h"
@@ -24,7 +27,7 @@ Simulation* NewSimulation(GravSimArgs* args) {
     }
 
     ParseSimulationFile(sim);
-    slog("parsed simulation file with %d bodies", sim->initialState->nBodies);
+    slog("parsed simulation file with %d bodies", sim->currentState->nBodies);
 
     return sim;
 }
@@ -45,7 +48,8 @@ void DeleteSimulation(Simulation* this) {
         free(this->name);
     }
 
-    DeleteSimState(this->initialState);
+    DeleteSimState(this->currentState);
+    DeleteSimState(this->nextState);
 
     free(this);
 }
@@ -81,9 +85,56 @@ bool ParseSimulationFile(Simulation* this) {
     struct json_object* initialStateObject;
     json_object_object_get_ex(simulationJson, "initialState", &initialStateObject);
 
-    this->initialState = NewSimStateFromJson(initialStateObject);
+    this->currentState = NewSimStateFromJson(initialStateObject);
+    this->currentState->frame = 0;
 
     // Decrements the reference counter to json_object to free it.
     json_object_put(simulationJson);
     return true;
+}
+
+// Swaps the simstates so that the nextstate becomes the current state
+// and the current state becomes the next state.
+void SwapSimStates(Simulation* this) {
+    SimState* holder = this->currentState;
+    this->currentState =  this->nextState;
+    this->nextState = holder;
+}
+
+// Runs the simulation.
+void Simulate(Simulation* this) {
+    // Prior to the simulation, we initialize another SimState that can hold the same number of
+    // bodies that were provided with the initial state. This allows us to toggle between the
+    // current/next states without having to allocate entire new simstates and copy a ton of
+    // information each frame.
+    this->nextState = NewSimState(0, 0, this->currentState->nBodies);
+
+    slog("beginning simulation");
+
+    struct timespec simStartTime, simEndTime;
+    clock_gettime(CLOCK_MONOTONIC, &simStartTime);
+
+    do {
+        biguint frame = this->currentState->frame + 1;
+        seconds time = this->currentState->time + this->inputArguments->timestep;
+        this->nextState->frame = frame;
+        this->nextState->time = time;
+
+        // loop over every body in the current state.
+        #pragma omp parallel for
+        for (biguint i = 0; i < this->currentState->nBodies; i++) {
+            AdvanceFromState(this->nextState->bodies[i], this->currentState, this->currentState->bodies[i]);
+        }
+
+        SwapSimStates(this);
+
+        // This slows things down a surprising amount. Only print every N frames to reduce IO overhead.
+        if (frame % 1000 == 0) {
+            slogc("completed frame %d", frame);
+        }
+    } while (this->currentState->frame + 1 <= this->inputArguments->steps);
+
+    clock_gettime(CLOCK_MONOTONIC, &simEndTime);
+    double elapsed = (simEndTime.tv_sec - simStartTime.tv_sec) + (simEndTime.tv_nsec - simStartTime.tv_nsec) / 1e9;
+    slog("\nSimulation completed in %.2f seconds", elapsed);
 }

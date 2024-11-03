@@ -1,7 +1,15 @@
 #include <string.h>
 
-#include "simbody.h"
+#include "simstate.h"
 #include "../log/log.h"
+
+// Creates a blank SimBody.
+SimBody* NewSimBody() {
+    SimBody* body = calloc(1, sizeof(SimBody));
+    body->position = NewVector3(0, 0, 0);
+    body->velocity = NewVector3(0, 0, 0);
+    return body;
+}
 
 #define INVALID_JSON_RETURN(field) slog("failed to parse SimBody json: %s", field); DeleteSimBody(body); return NULL;
 
@@ -66,4 +74,11 @@ void DeleteSimBody(SimBody* this) {
         DeleteVector3(this->velocity);
         free(this);
     }
+}
+
+// Given the previous simulation state and a reference to a body in that state,
+// updates the SimBody this by applying simulation logic over the bodies in the previous state.
+void AdvanceFromState(SimBody* this, SimState* previousState, SimBody* previousBody) {
+    // TODO this is just a dummy placeholder operation for now
+    this->position->x = previousBody->position->x + 1;
 }

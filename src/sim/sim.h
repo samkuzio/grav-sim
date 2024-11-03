@@ -10,7 +10,8 @@ typedef struct Simulation_t {
     char* inputFile;
 
     char* name;
-    SimState* initialState;
+    SimState* currentState;
+    SimState* nextState;
 } Simulation;
 
 // Create a new simulation from the input arguments.
@@ -18,5 +19,8 @@ Simulation* NewSimulation(GravSimArgs* args);
 
 // Free the simulation and all the resources that it owns.
 void DeleteSimulation(Simulation* this);
+
+// Runs the simulation.
+void Simulate(Simulation* this);
 
 #endif

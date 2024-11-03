@@ -16,7 +16,7 @@ typedef struct GravSimArgs_t {
     seconds timestep;
 
     // Number of steps to simulate
-    unsigned long int steps;
+    biguint steps;
 } GravSimArgs;
 
 // allocates a new GravSimArgs structure and initializes with the provided values.

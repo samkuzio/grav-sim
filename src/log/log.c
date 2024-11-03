@@ -11,3 +11,13 @@ void slog(const char* msg, ...) {
 
     printf("\n");
 }
+
+void slogc(const char* msg, ...) {
+    // clears previous line in stdout
+    printf("\033[2K\r");
+
+    va_list args;
+    va_start(args, msg);
+    vprintf(msg, args);
+    va_end(args);
+}

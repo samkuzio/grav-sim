@@ -14,7 +14,7 @@ LINK_TO := -ljson-c
 # compile flags
 # uncomment to build with debugging symbols
 DEBUG := -ggdb
-CFLAGS := $(DEBUG) -Wall -Wextra
+CFLAGS := $(DEBUG) -Wall -Wextra -fopenmp
 CXXFLAGS := 
 OBJCFLAGS := $(CFLAGS) -c
 OBJCXXFLAGS := $(CXXFLAGS) -c

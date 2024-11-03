@@ -13,4 +13,8 @@ bool ReadSimulationFile(Simulation* this);
 // ReadSimulationFile must be called with the given simulation prior to calling ParseSimulationFile.
 bool ParseSimulationFile(Simulation* this);
 
+// Swaps the simstates so that the nextstate becomes the current state
+// and the current state becomes the next state.
+void SwapSimStates(Simulation* this);
+
 #endif
