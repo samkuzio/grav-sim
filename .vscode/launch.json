@@ -7,13 +7,18 @@
             "program": "${workspaceFolder}/grav-sim",
             "args": [
                 "-input", "tests/data/simulations/sun-and-earth-365-days.json",
-                "-output", "tests/data/output/dev-test.sim",
+                "-output", "tests/data/outputs/dev-test.sim",
                 "-timestep", "86400",
-                "-steps", "365"
+                "-steps", "10"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [

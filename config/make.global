@@ -9,11 +9,12 @@ CC := gcc
 CXX:= g++
 
 # libraries that should be linked to.
-LINK_TO := -ljson-c
+LINK_TO := -ljson-c -lm
+LINK_TO_LOCAL := -L . -lgpumath
 
 # compile flags
 # uncomment to build with debugging symbols
-DEBUG := -ggdb
+#DEBUG := -ggdb
 CFLAGS := $(DEBUG) -Wall -Wextra -fopenmp
 CXXFLAGS := 
 OBJCFLAGS := $(CFLAGS) -c

@@ -10,7 +10,12 @@
 typedef struct GravSimArgs_t {
     char* inputFilePath;
     char* outputFilePath;
-    int threads;
+
+    // if running on cpu, this attempts to use all cores.
+    bool parallel;
+
+    // set to run on gpu.
+    bool gpu;
 
     // Length of time in seconds that should elapse between states of the simulation.
     seconds timestep;

@@ -20,4 +20,5 @@ void slogc(const char* msg, ...) {
     va_start(args, msg);
     vprintf(msg, args);
     va_end(args);
+    fflush(stdout);
 }

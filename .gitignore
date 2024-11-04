@@ -1,3 +1,4 @@
 *.o
+*.so
 grav-sim
 tests/data/outputs

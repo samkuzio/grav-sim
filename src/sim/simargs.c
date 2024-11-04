@@ -30,13 +30,6 @@ GravSimArgs* NewGravSimArgs(int argc, char** argv) {
             } else if (strcmp("-output", flag) == 0) {
                 args->outputFilePath = calloc(strlen(value)+1, sizeof(char));
                 strcpy(args->outputFilePath, value);
-            } else if (strcmp("-threads", flag) == 0) {
-                char* endptr;
-                long numThreads = strtol(value, &endptr, 10);
-                if (*endptr != '\0' || numThreads < 0) {
-                    numThreads = -1;
-                }
-                args->threads = numThreads;
             } else if (strcmp("-timestep", flag) == 0) {
                 char* endptr;
                 seconds timestep = strtold(value, &endptr);
@@ -51,6 +44,14 @@ GravSimArgs* NewGravSimArgs(int argc, char** argv) {
                     steps = -1;
                 }
                 args->steps = steps;
+            } else if (strcmp("-gpu", flag) == 0) {
+                args->gpu = true;
+                argi--; // only advance by one since this is a flag, not and key/value
+            } else if (strcmp("-parallel", flag) == 0) {
+                args->parallel = true;
+                argi--; // only advance by one since this is a flag, not and key/value
+            } else {
+                slog("warn: unknown input argument '%s'", flag);
             }
         }
 
@@ -69,11 +70,12 @@ void DeleteGravSimArgs(GravSimArgs* this) {
 }
 
 void PrintGravSimArgs(GravSimArgs* this) {
-    slog("\tinput file  = %s", this->inputFilePath);
-    slog("\toutput file = %s", this->outputFilePath);
-    slog("\tthreads     = %d", this->threads);
-    slog("\ttimestep    = %.3Lf", this->timestep);
-    slog("\tsteps       = %ld", this->steps);
+    slog("\tinput file   = %s", this->inputFilePath);
+    slog("\toutput file  = %s", this->outputFilePath);
+    slog("\ttimestep     = %.3f", this->timestep);
+    slog("\tsteps        = %ld", this->steps);
+    slog("\tusing gpu    = %s", this->gpu ? "yes" : "no");
+    slog("\tparallel cpu = %s", this->parallel ? "yes" : "no");
 }
 
 void logListItems(void* value) {
@@ -90,11 +92,6 @@ bool ValidateGravSimArgs(GravSimArgs* this) {
 
     if (this->outputFilePath == NULL) {
         char* errorMessage = strdup("error: output file is required");
-        Append(errorList, errorMessage);
-    }
-
-    if (this->threads < 0) {
-        char* errorMessage = strdup("error: threads should be zero or more");
         Append(errorList, errorMessage);
     }
 

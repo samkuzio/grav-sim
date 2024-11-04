@@ -6,17 +6,25 @@
 
 #define INVALID_JSON_RETURN(msg) slog("failed to parse SimState json: %s", msg); DeleteSimState(state); return NULL;
 
-// Create a blank SimState.
-SimState* NewSimState(biguint frame, seconds time, biguint nbodies) {
-    SimState* state = calloc(1, sizeof(SimState));
-    state->frame = frame;
-    state->time = time;
-    state->nBodies = nbodies;
-    state->bodies = calloc(nbodies, sizeof(SimBody*));
-    for (biguint i = 0; i < state->nBodies; i++) {
-        state->bodies[i] = NewSimBody();
+// Create a blank SimState by performing a deep copy of the other.
+SimState* NewSimStateByDeepCopy(SimState* other) {
+    SimState* this = malloc(sizeof(SimState));
+
+    this->time = other->time;
+    this->frame = other->frame;
+    this->nBodies = other->nBodies;
+    this->bodies = malloc(this->nBodies * sizeof(SimBody*));
+    this->bodyPositions = (Vector3*)malloc(this->nBodies * sizeof(Vector3));
+    this->bodyVelocities = (Vector3*)malloc(this->nBodies * sizeof(Vector3));
+
+    for (biguint i = 0; i < this->nBodies; i++) {
+        this->bodies[i] = NewSimBodyByDeepCopy(other->bodies[i]);
     }
-    return state;
+
+    memcpy(this->bodyPositions, other->bodyPositions, this->nBodies * sizeof(Vector3));
+    memcpy(this->bodyVelocities, other->bodyVelocities, this->nBodies * sizeof(Vector3));
+
+    return this;
 }
 
 // Create a SimState from json
@@ -62,6 +70,15 @@ SimState* NewSimStateFromJson(struct json_object* json) {
         state->bodies[i] = body;
     }
 
+    //build continuguous arrays of body positions and velocities.
+    state->bodyPositions = (Vector3*)malloc(state->nBodies * sizeof(Vector3));
+    state->bodyVelocities = (Vector3*)malloc(state->nBodies * sizeof(Vector3));
+
+    for (biguint i = 0; i < state->nBodies; i++) {
+        memcpy(&state->bodyPositions[i], state->bodies[i]->initialPosition, sizeof(Vector3));
+        memcpy(&state->bodyVelocities[i], state->bodies[i]->initialVelocity, sizeof(Vector3));
+    }
+
     return state;
 }
 
@@ -74,7 +91,10 @@ void DeleteSimState(SimState* this) {
                 DeleteSimBody(body);
             }
         }
-        free(this->bodies);
+        if (this->bodies != NULL)  free(this->bodies);
+        if (this->bodyPositions != NULL) free(this->bodyPositions);
+        if (this->bodyVelocities != NULL) free(this->bodyVelocities);
+
         free(this);
     }
 }

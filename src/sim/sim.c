@@ -97,7 +97,7 @@ bool ParseSimulationFile(Simulation* this) {
 // and the current state becomes the next state.
 void SwapSimStates(Simulation* this) {
     SimState* holder = this->currentState;
-    this->currentState =  this->nextState;
+    this->currentState = this->nextState;
     this->nextState = holder;
 }
 
@@ -107,32 +107,76 @@ void Simulate(Simulation* this) {
     // bodies that were provided with the initial state. This allows us to toggle between the
     // current/next states without having to allocate entire new simstates and copy a ton of
     // information each frame.
-    this->nextState = NewSimState(0, 0, this->currentState->nBodies);
+    this->nextState = NewSimStateByDeepCopy(this->currentState);
+
+    // write headers to output file
+    FILE* output = fopen(this->inputArguments->outputFilePath, "w");
+    for (biguint i = 0; i < this->currentState->nBodies; i++) {
+        if (i != 0) fprintf(output, ",");
+        char* name = this->currentState->bodies[i]->name;
+        fprintf(output, "%s.x,%s.y,%s.z", name, name, name);
+        fflush(output);
+    }
+    fprintf(output, "\n");
+    fflush(output);
 
     slog("beginning simulation");
 
     struct timespec simStartTime, simEndTime;
     clock_gettime(CLOCK_MONOTONIC, &simStartTime);
 
+    struct timespec frameStartTime, frameEndTime;
     do {
+        clock_gettime(CLOCK_MONOTONIC, &frameStartTime);
+
         biguint frame = this->currentState->frame + 1;
         seconds time = this->currentState->time + this->inputArguments->timestep;
         this->nextState->frame = frame;
         this->nextState->time = time;
 
         // loop over every body in the current state.
-        #pragma omp parallel for
-        for (biguint i = 0; i < this->currentState->nBodies; i++) {
-            AdvanceFromState(this->nextState->bodies[i], this->currentState, this->currentState->bodies[i]);
+        if (this->inputArguments->gpu) {
+            for (biguint i = 0; i < this->currentState->nBodies; i++) {
+                AdvanceFromStateGPU(this->inputArguments->timestep, this->nextState->bodies[i], i, this->currentState, this->nextState);
+            }
+        } else {
+            if (this->inputArguments->parallel) {
+                # pragma omp parallel for
+                for (biguint i = 0; i < this->currentState->nBodies; i++) {
+                    AdvanceFromStateCPU(this->inputArguments->timestep, this->nextState->bodies[i], i, this->currentState, this->nextState);
+                }
+            } else {
+                for (biguint i = 0; i < this->currentState->nBodies; i++) {
+                    AdvanceFromStateCPU(this->inputArguments->timestep, this->nextState->bodies[i], i, this->currentState, this->nextState);
+                }
+            }
         }
 
         SwapSimStates(this);
 
-        // This slows things down a surprising amount. Only print every N frames to reduce IO overhead.
-        if (frame % 1000 == 0) {
-            slogc("completed frame %d", frame);
+        // write position values for the computed state
+        for(biguint i = 0; i < this->currentState->nBodies; i++) {
+            if (i != 0) fprintf(output, ",");
+            Vector3* pos = &(this->currentState->bodyPositions[i]);
+            fprintf(output, "%f,%f,%f", pos->values[0], pos->values[1], pos->values[2]);
         }
+        fprintf(output, "\n");
+        fflush(output);
+
+        clock_gettime(CLOCK_MONOTONIC, &frameEndTime);
+        double percent = 100.0 * (double)this->currentState->frame / (double)this->inputArguments->steps;
+        double elapsed = (frameEndTime.tv_sec - frameStartTime.tv_sec) + (frameEndTime.tv_nsec - frameStartTime.tv_nsec) / 1e9;
+        double totalEstRem = elapsed * (this->inputArguments->steps - this->currentState->frame);
+        double estHoursRem = floor(totalEstRem / 3600.0);
+        totalEstRem -= (estHoursRem * 3600.0);
+        double estMinutesRem = floor(totalEstRem / 60.0);
+        totalEstRem -= (estMinutesRem * 60.0);
+        slogc("%.3f%% | fr %d / %d | ft %.5fs | %.0f:%02.0f:%02.0f est rem",
+            percent, this->currentState->frame, this->inputArguments->steps, elapsed, estHoursRem, estMinutesRem, totalEstRem);
+
     } while (this->currentState->frame + 1 <= this->inputArguments->steps);
+
+    fclose(output);
 
     clock_gettime(CLOCK_MONOTONIC, &simEndTime);
     double elapsed = (simEndTime.tv_sec - simStartTime.tv_sec) + (simEndTime.tv_nsec - simStartTime.tv_nsec) / 1e9;

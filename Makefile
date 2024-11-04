@@ -19,9 +19,9 @@ rwildcard=$(foreach d,$(wildcard $(addsuffix *,$(1))),$(call rwildcard,$(d)/,$(2
 default: show-info all
 
 # non-phony targets
-$(TARGET): build-subdirs $(OBJS) find-all-objs
-	@echo -e "\t" CC $(CFLAGS) $(ALL_OBJS) $(MAIN_SRC) -o $@
-	@$(CC) $(CFLAGS) $(ALL_OBJS) $(MAIN_SRC) -o $@ $(LINK_TO)
+$(TARGET): build-subdirs $(OBJS) find-all-objs 
+	@echo -e "\t" CC $(CFLAGS) $(ALL_OBJS) $(MAIN_SRC) -o $@ $(LINK_TO) $(LINK_TO_LOCAL)
+	@$(CC) $(CFLAGS) $(ALL_OBJS) $(MAIN_SRC) -o $@ $(LINK_TO) $(LINK_TO_LOCAL)
 
 # phony targets
 .PHONY: all
