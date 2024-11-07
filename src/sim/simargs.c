@@ -22,8 +22,13 @@ GravSimArgs* NewGravSimArgs(int argc, char** argv) {
         char* flag = argv[argi];
         char* value = (argi + 1) < argc ? argv[argi+1] : NULL;
 
-        // assign named input args into the struct.
-        if (value != NULL) {
+        // First parse flags that do not accept a value
+	if (strcmp("-gpu", flag) == 0) {
+            args->gpu = true;
+        } else if (strcmp("-parallel", flag) == 0) {
+            args->parallel = true;
+        } else if (value != NULL) {
+            // now parse flags that require a value.
             if (strcmp("-input", flag) == 0) {
                 args->inputFilePath = calloc(strlen(value)+1, sizeof(char));
                 strcpy(args->inputFilePath, value);
@@ -44,18 +49,14 @@ GravSimArgs* NewGravSimArgs(int argc, char** argv) {
                     steps = -1;
                 }
                 args->steps = steps;
-            } else if (strcmp("-gpu", flag) == 0) {
-                args->gpu = true;
-                argi--; // only advance by one since this is a flag, not and key/value
-            } else if (strcmp("-parallel", flag) == 0) {
-                args->parallel = true;
-                argi--; // only advance by one since this is a flag, not and key/value
             } else {
                 slog("warn: unknown input argument '%s'", flag);
             }
+	    // advance past the value that was saved.
+            argi++; 
+	} else {
+            slog("warn: uknown input argument '%s'", flag);
         }
-
-        argi++;
     }
 
     return args;

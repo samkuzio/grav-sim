@@ -46,7 +46,7 @@ void DeleteSimState(SimState* this);
 
 // Given the current simulation state and a reference to a body in that state,
 // updates the SimBody this by applying simulation logic over the bodies in the previous state.
-void AdvanceFromStateGPU(seconds deltaT, SimBody* this, biguint bodyIndex, SimState* currentState, SimState* nextState);
+//void AdvanceFromStateGPU(seconds deltaT, SimBody* this, biguint bodyIndex, SimState* currentState, SimState* nextState);
 
 // Given the current simulation state and a reference to a body in that state,
 // updates the SimBody this by applying simulation logic over the bodies in the previous state.

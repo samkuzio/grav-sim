@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <math.h>
 #include <time.h>
 
 #include <json-c/json.h>
@@ -111,6 +111,10 @@ void Simulate(Simulation* this) {
 
     // write headers to output file
     FILE* output = fopen(this->inputArguments->outputFilePath, "w");
+    if (output == NULL) {
+        slog("Cannot write output file '%s'. Aborting.", this->inputArguments->outputFilePath);
+	return;
+    }
     for (biguint i = 0; i < this->currentState->nBodies; i++) {
         if (i != 0) fprintf(output, ",");
         char* name = this->currentState->bodies[i]->name;
@@ -136,9 +140,11 @@ void Simulate(Simulation* this) {
 
         // loop over every body in the current state.
         if (this->inputArguments->gpu) {
-            for (biguint i = 0; i < this->currentState->nBodies; i++) {
-                AdvanceFromStateGPU(this->inputArguments->timestep, this->nextState->bodies[i], i, this->currentState, this->nextState);
-            }
+            slog("GPU is not currently supported. Quitting.");
+	    return;
+            //for (biguint i = 0; i < this->currentState->nBodies; i++) {
+            //    AdvanceFromStateGPU(this->inputArguments->timestep, this->nextState->bodies[i], i, this->currentState, this->nextState);
+            //}
         } else {
             if (this->inputArguments->parallel) {
                 # pragma omp parallel for

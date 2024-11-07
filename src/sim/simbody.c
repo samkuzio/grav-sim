@@ -88,6 +88,7 @@ void DeleteSimBody(SimBody* this) {
     }
 }
 
+/* GPU support is disabled for now
 void AdvanceFromStateGPU(seconds detltaT, SimBody* this, biguint bodyIndex, SimState* currentState, SimState* nextState) {
     // Compute the normalized direction vectors from all other bodies to this body.
     // Initialize our output vector.
@@ -106,7 +107,7 @@ void AdvanceFromStateGPU(seconds detltaT, SimBody* this, biguint bodyIndex, SimS
     // so that duplicating and reshaping what is in memory already is not necessary.
     free(thisPositionArray);
     free(normalDirectionVectors);
-}
+}*/
 
 // Given the previous simulation state and a reference to a body in that state,
 // updates the SimBody this by applying simulation logic over the bodies in the previous state.
